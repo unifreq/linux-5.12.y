@@ -119,7 +119,25 @@
 			(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH)>;
 	};
 
-	soc {
+	sound_hdmi: sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,name = "allwinner-hdmi";
+		simple-audio-card,mclk-fs = <128>;
+		simple-audio-card,frame-inversion;
+
+		simple-audio-card,codec {
+			sound-dai = <&hdmi>;
+		};
+
+		simple-audio-card,cpu {
+			sound-dai = <&i2s1>;
+			dai-tdm-slot-num = <2>;
+			dai-tdm-slot-width = <32>;
+			};
+	};
+
+	soc: soc {
 		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <1>;
@@ -171,6 +189,17 @@
 			};
 		};
 
+                deinterlace: deinterlace@1420000 {
+                        compatible = "allwinner,sun50i-h6-deinterlace";
+                        reg = <0x01420000 0x2000>;
+                        clocks = <&ccu CLK_BUS_DEINTERLACE>,
+                                 <&ccu CLK_DEINTERLACE>,
+                                 <&ccu CLK_MBUS_DEINTERLACE>;
+                        clock-names = "bus", "mod", "ram";
+                        resets = <&ccu RST_BUS_DEINTERLACE>;
+                        interrupts = <GIC_SPI 79 IRQ_TYPE_LEVEL_HIGH>;
+                };
+
 		video-codec@1c0e000 {
 			compatible = "allwinner,sun50i-h6-video-engine";
 			reg = <0x01c0e000 0x2000>;
@@ -194,6 +223,8 @@
 			clocks = <&ccu CLK_GPU>, <&ccu CLK_BUS_GPU>;
 			clock-names = "core", "bus";
 			resets = <&ccu RST_BUS_GPU>;
+			operating-points-v2 = <&gpu_opp_table>;
+			#cooling-cells = <2>;
 			status = "disabled";
 		};
 
@@ -678,6 +709,7 @@
 				interrupts = <1 20 IRQ_TYPE_LEVEL_LOW>;
 				interrupt-controller;
 				#interrupt-cells = <1>;
+				clocks = <&ac200_pwm_clk>;
 
 				ac200_ephy: phy {
 					compatible = "x-powers,ac200-ephy";
@@ -856,6 +888,7 @@
 		};
 
 		hdmi: hdmi@6000000 {
+			#sound-dai-cells = <0>;
 			compatible = "allwinner,sun50i-h6-dw-hdmi";
 			reg = <0x06000000 0x10000>;
 			reg-io-width = <1>;
@@ -1210,6 +1243,61 @@
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
 			thermal-sensors = <&ths 1>;
+
+                        trips {
+                                gpu_alert: gpu-alert {
+                                        temperature = <85000>;
+                                        hysteresis = <2000>;
+                                        type = "passive";
+                                };
+
+                                gpu-crit {
+                                        temperature = <100000>;
+                                        hysteresis = <0>;
+                                        type = "critical";
+                                };
+                        };
+
+                        cooling-maps {
+                                map0 {
+                                        trip = <&gpu_alert>;
+                                        cooling-device = <&gpu THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+                                };
+                        };
 		};
 	};
+
+        gpu_opp_table: gpu-opp-table {
+                compatible = "operating-points-v2";
+
+                opp@216000000 {
+                        opp-hz = /bits/ 64 <216000000>;
+                        opp-microvolt = <810000 810000 1200000>;
+                };
+
+                opp@312000000 {
+                        opp-hz = /bits/ 64 <312000000>;
+                        opp-microvolt = <810000 810000 1200000>;
+                };
+
+                opp@408000000 {
+                        opp-hz = /bits/ 64 <408000000>;
+                        opp-microvolt = <840000 840000 1200000>;
+                };
+
+                opp@540000000 {
+                        opp-hz = /bits/ 64 <540000000>;
+                        opp-microvolt = <910000 910000 1200000>;
+                };
+
+                opp@624000000 {
+                        opp-hz = /bits/ 64 <624000000>;
+                        opp-microvolt = <950000 950000 1200000>;
+                };
+
+                opp@756000000 {
+                        opp-hz = /bits/ 64 <756000000>;
+                        opp-microvolt = <1040000 1040000 1200000>;
+                };
+        };
 };

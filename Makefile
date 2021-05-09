@@ -400,7 +400,9 @@ export KCONFIG_CONFIG
 export KBUILD_DEFCONFIG := defconfig
 
 # SHELL used by kbuild
-CONFIG_SHELL := sh
+CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
+	  else if [ -x /bin/bash ]; then echo /bin/bash; \
+	  else echo sh; fi ; fi)
 
 HOST_LFS_CFLAGS := $(shell getconf LFS_CFLAGS 2>/dev/null)
 HOST_LFS_LDFLAGS := $(shell getconf LFS_LDFLAGS 2>/dev/null)

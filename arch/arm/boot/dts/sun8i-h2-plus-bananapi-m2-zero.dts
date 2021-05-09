@@ -20,10 +20,22 @@
 	aliases {
 		serial0 = &uart0;
 		serial1 = &uart1;
+		ethernet0 = &emac;
 	};
 
 	chosen {
 		stdout-path = "serial0:115200n8";
+	};
+
+	connector {
+		compatible = "hdmi-connector";
+		type = "a";
+
+		port {
+			hdmi_con_in: endpoint {
+				remote-endpoint = <&hdmi_out_con>;
+			};
+		};
 	};
 
 	leds {
@@ -31,9 +43,20 @@
 
 		pwr_led {
 			label = "bananapi-m2-zero:red:pwr";
-			gpios = <&r_pio 0 10 GPIO_ACTIVE_LOW>; /* PL10 */
-			default-state = "on";
+			gpios = <&r_pio 0 10 GPIO_ACTIVE_HIGH>; /* PL10 */
+			linux,default-trigger = "heartbeat";
 		};
+	};
+
+	rfkill_bt: rfkill_bt {
+		compatible = "rfkill-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&bt_pwr_pin>;
+		reset-gpios = <&pio 6 12 GPIO_ACTIVE_HIGH>; /* PG12 */
+		clocks = <&osc32k>;
+		clock-frequency = <32768>;
+		rfkill-name = "sunxi-bt";
+		rfkill-type = "bluetooth";
 	};
 
 	gpio_keys {
@@ -99,6 +122,21 @@
 	};
 };
 
+&pio {
+	bt_pwr_pin: bt_pwr_pin {
+		pins = "PG12";
+		function = "gpio_out";
+	};
+};
+
+
+&r_pio {
+	wifi_en_pin: wifi_en_pin {
+		pins = "PL7";
+		function = "gpio_out";
+	};
+};
+
 &cpu0 {
 	cpu-supply = <&reg_vdd_cpux>;
 };
@@ -134,6 +172,24 @@
 		interrupts = <6 10 IRQ_TYPE_LEVEL_LOW>; /* PG10 / EINT10 */
 		interrupt-names = "host-wake";
 	};
+};
+
+&de {
+	status = "okay";
+};
+
+&hdmi {
+	status = "okay";
+};
+
+&hdmi_out {
+	hdmi_out_con: endpoint {
+		remote-endpoint = <&hdmi_con_in>;
+	};
+};
+
+&mixer0 {
+	status = "okay";
 };
 
 &ohci0 {
@@ -243,5 +299,21 @@
 	 * the external USB device will be powered just by the power input
 	 * from the power-only USB port.
 	 */
+	status = "okay";
+};
+
+
+&emac {
+	status = "okay";
+	phy-handle = <&int_mii_phy>;
+	phy-mode = "mii";
+	allwinner,leds-active-low;
+};
+
+&i2s2 {
+	status = "okay";
+};
+
+&hdmi_sound {
 	status = "okay";
 };

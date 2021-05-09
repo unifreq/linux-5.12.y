@@ -74,6 +74,23 @@
 			clock-accuracy = <20000>;
 			clock-output-names = "ext-osc32k";
 		};
+
+		osc24M_32k: clk@1 {
+			#clock-cells = <0>;
+			compatible = "fixed-factor-clock";
+			clock-div = <732>;
+			clock-mult = <1>;
+			clocks = <&osc24M>;
+			clock-output-names = "osc24M_32k";
+		};
+
+		clk_out_a: clk@01c201f0 {
+			#clock-cells = <0>;
+			compatible = "allwinner,sun7i-a20-out-clk";
+			reg = <0x01c201f0 0x4>;
+			clocks = <&osc24M_32k>, <&osc32k>, <&osc24M>;
+			clock-output-names = "clk_out_a";
+		};
 	};
 
 	cpus {
@@ -636,6 +653,11 @@
 				function = "uart0";
 			};
 
+			uart2_pi_pins: uart2-pi-pins {
+				pins = "PI18", "PI19";
+				function = "uart2";
+			};
+
 			uart3_pg_pins: uart3-pg-pins {
 				pins = "PG6", "PG7";
 				function = "uart3";
@@ -645,6 +667,23 @@
 				pins = "PG8", "PG9";
 				function = "uart3";
 			};
+
+			uart4_ph_pins: uart4-ph-pins {
+				pins = "PH4", "PH5";
+				function = "uart4";
+			};
+
+
+			uart5_ph_pins: uart5-ph-pins {
+				pins = "PH6", "PH7";
+				function = "uart5";
+			};
+
+			uart7_pi_pins: uart7-pi-pins {
+				pins = "PI20", "PI21";
+				function = "uart7";
+			};
+
 		};
 
 		wdt: watchdog@1c20c90 {

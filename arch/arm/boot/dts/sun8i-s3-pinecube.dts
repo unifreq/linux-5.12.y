@@ -75,6 +75,12 @@
 	};
 };
 
+&ehci0 {
+	phys = <&usbphy 0>;
+	phy-names = "usb";
+	status = "okay";
+};
+
 &emac {
 	phy-handle = <&int_mii_phy>;
 	phy-mode = "mii";
@@ -151,6 +157,12 @@
 	status = "okay";
 };
 
+&ohci0 {
+	phys = <&usbphy 0>;
+	phy-names = "usb";
+	status = "okay";
+};
+
 &pio {
 	vcc-pd-supply = <&reg_dcdc3>;
 	vcc-pe-supply = <&reg_ldo3>;
@@ -214,11 +226,6 @@
 };
 
 &uart2 {
-	status = "okay";
-};
-
-&usb_otg {
-	dr_mode = "host";
 	status = "okay";
 };
 

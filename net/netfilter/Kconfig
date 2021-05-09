@@ -136,6 +136,14 @@ config NF_CONNTRACK_EVENTS
 
 	  If unsure, say `N'.
 
+config NF_CONNTRACK_CHAIN_EVENTS
+	bool "Register multiple callbacks to ct events"
+	depends on NF_CONNTRACK_EVENTS
+	help
+	  Support multiple registrations.
+
+	  If unsure, say `N'.
+
 config NF_CONNTRACK_TIMEOUT
 	bool  'Connection tracking timeout'
 	depends on NETFILTER_ADVANCED
@@ -956,6 +964,14 @@ config NETFILTER_XT_TARGET_NETMAP
 	NETMAP is an implementation of static 1:1 NAT mapping of network
 	addresses. It maps the network address part, while keeping the host
 	address part intact.
+
+	To compile it as a module, choose M here. If unsure, say N.
+
+config NETFILTER_XT_TARGET_FULLCONENAT
+	tristate '"FULLCONENAT" target support'
+	depends on NF_NAT
+	help
+	Full Cone NAT
 
 	To compile it as a module, choose M here. If unsure, say N.
 

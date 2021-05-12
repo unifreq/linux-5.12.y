@@ -44,6 +44,7 @@
         };
 };
 
+/* SDIO */
 &sd_emmc_a {
 	///delete-property/ sd-uhs-sdr50;
 	//sd-uhs-sdr12;
@@ -52,8 +53,10 @@
 	max-frequency = <100000000>;
 };
 
+/* SDCARD */
 &sd_emmc_b {
-	max-frequency = <50000000>;
+	cap-mmc-highspeed;
+	max-frequency = <100000000>;
 };
 
 /* eMMC */
@@ -67,7 +70,6 @@
 	pinctrl-names = "default";
 
 	rtc: rtc@51 {
-		//compatible = "nxp,pcf8563";
 		compatible = "haoyu,hym8563";
 		reg = <0x51>;
 		wakeup-source;

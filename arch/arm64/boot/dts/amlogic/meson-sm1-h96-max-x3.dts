@@ -136,7 +136,7 @@
 };
 
 &ir {
-	linux,rc-map-name = "rc-h96max";
+	linux,rc-map-name = "rc-x96max";
 };
 
 &tdmif_b {

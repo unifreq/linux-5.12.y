@@ -366,17 +366,24 @@
 };
 
 &ethmac {
+	status = "okay";
+
 	pinctrl-0 = <&eth_pins>, <&eth_rgmii_pins>;
 	pinctrl-names = "default";
-	status = "okay";
-	phy-mode = "rgmii";
+	phy-mode = "rgmii-txid";
 	phy-handle = <&external_phy>;
-	amlogic,tx-delay-ns = <2>;
-	nvmem-cells = <&eth_mac>;
-	nvmem-cell-names = "eth_mac";
+
+	rx-internal-delay-ps = <800>;
+
 	snps,aal;
 	snps,rxpbl = <0x8>;
 	snps,txpbl = <0x8>;
+
+	rx-fifo-depth = <4096>;
+	tx-fifo-depth = <4096>;
+
+	nvmem-cells = <&eth_mac>;
+	nvmem-cell-names = "eth_mac";
 };
 
 &pwm_ef {

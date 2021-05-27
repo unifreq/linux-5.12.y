@@ -111,6 +111,9 @@
 
 	rx-fifo-depth = <4096>;
 	tx-fifo-depth = <4096>;
+
+	nvmem-cells = <&eth_mac>;
+	nvmem-cell-names = "eth_mac";
 };
 
 &ext_mdio {

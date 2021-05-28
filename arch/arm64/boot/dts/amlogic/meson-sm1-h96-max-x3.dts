@@ -203,11 +203,6 @@
 		status = "disabled";
 	};
 
-	opp-750000000 {
-		opp-hz = /bits/ 64 <750000000>;
-		opp-microvolt = <750000>;
-	};
-
 	opp-2016000000 {
 		opp-hz = /bits/ 64 <2016000000>;
 		opp-microvolt = <1000000>;

@@ -848,52 +848,6 @@ int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb)
 }
 EXPORT_SYMBOL_GPL(dev_fill_metadata_dst);
 
-static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
-{
-	int k = stack->num_paths++;
-
-	if (WARN_ON_ONCE(k >= NET_DEVICE_PATH_STACK_MAX))
-		return NULL;
-
-	return &stack->path[k];
-}
-
-int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
-			  struct net_device_path_stack *stack)
-{
-	const struct net_device *last_dev;
-	struct net_device_path_ctx ctx = {
-		.dev	= dev,
-		.daddr	= daddr,
-	};
-	struct net_device_path *path;
-	int ret = 0;
-
-	stack->num_paths = 0;
-	while (ctx.dev && ctx.dev->netdev_ops->ndo_fill_forward_path) {
-		last_dev = ctx.dev;
-		path = dev_fwd_path(stack);
-		if (!path)
-			return -1;
-
-		memset(path, 0, sizeof(struct net_device_path));
-		ret = ctx.dev->netdev_ops->ndo_fill_forward_path(&ctx, path);
-		if (ret < 0)
-			return -1;
-
-		if (WARN_ON_ONCE(last_dev == ctx.dev))
-			return -1;
-	}
-	path = dev_fwd_path(stack);
-	if (!path)
-		return -1;
-	path->type = DEV_PATH_ETHERNET;
-	path->dev = ctx.dev;
-
-	return ret;
-}
-EXPORT_SYMBOL_GPL(dev_fill_forward_path);
-
 /**
  *	__dev_get_by_name	- find a device by its name
  *	@net: the applicable net namespace
@@ -6035,9 +5989,6 @@ static enum gro_result dev_gro_receive(struct napi_struct *napi, struct sk_buff 
 	int same_flow;
 	int grow;
 
-	if (skb->gro_skip)
-		goto normal;
-
 	if (netif_elide_gro(skb->dev))
 		goto normal;
 
@@ -8033,48 +7984,6 @@ static void __netdev_adjacent_dev_unlink_neighbour(struct net_device *dev,
 					   &upper_dev->adj_list.lower);
 }
 
-static void __netdev_addr_mask(unsigned char *mask, const unsigned char *addr,
-			       struct net_device *dev)
-{
-	int i;
-
-	for (i = 0; i < dev->addr_len; i++)
-		mask[i] |= addr[i] ^ dev->dev_addr[i];
-}
-
-static void __netdev_upper_mask(unsigned char *mask, struct net_device *dev,
-				struct net_device *lower)
-{
-	struct net_device *cur;
-	struct list_head *iter;
-
-	netdev_for_each_upper_dev_rcu(dev, cur, iter) {
-		__netdev_addr_mask(mask, cur->dev_addr, lower);
-		__netdev_upper_mask(mask, cur, lower);
-	}
-}
-
-static void __netdev_update_addr_mask(struct net_device *dev)
-{
-	unsigned char mask[MAX_ADDR_LEN];
-	struct net_device *cur;
-	struct list_head *iter;
-
-	memset(mask, 0, sizeof(mask));
-	__netdev_upper_mask(mask, dev, dev);
-	memcpy(dev->local_addr_mask, mask, dev->addr_len);
-
-	netdev_for_each_lower_dev(dev, cur, iter)
-		__netdev_update_addr_mask(cur);
-}
-
-static void netdev_update_addr_mask(struct net_device *dev)
-{
-	rcu_read_lock();
-	__netdev_update_addr_mask(dev);
-	rcu_read_unlock();
-}
-
 static int __netdev_upper_dev_link(struct net_device *dev,
 				   struct net_device *upper_dev, bool master,
 				   void *upper_priv, void *upper_info,
@@ -8126,7 +8035,6 @@ static int __netdev_upper_dev_link(struct net_device *dev,
 	if (ret)
 		return ret;
 
-	netdev_update_addr_mask(dev);
 	ret = call_netdevice_notifiers_info(NETDEV_CHANGEUPPER,
 					    &changeupper_info.info);
 	ret = notifier_to_errno(ret);
@@ -8223,7 +8131,6 @@ static void __netdev_upper_dev_unlink(struct net_device *dev,
 
 	__netdev_adjacent_dev_unlink_neighbour(dev, upper_dev);
 
-	netdev_update_addr_mask(dev);
 	call_netdevice_notifiers_info(NETDEV_CHANGEUPPER,
 				      &changeupper_info.info);
 
@@ -9043,7 +8950,6 @@ int dev_set_mac_address(struct net_device *dev, struct sockaddr *sa,
 	if (err)
 		return err;
 	dev->addr_assign_type = NET_ADDR_SET;
-	netdev_update_addr_mask(dev);
 	call_netdevice_notifiers(NETDEV_CHANGEADDR, dev);
 	add_device_randomness(dev->dev_addr, dev->addr_len);
 	return 0;
